@@ -1,0 +1,410 @@
+---
+description: MobX 状态管理最佳实践
+globs: *.ts,*.tsx
+---
+# MobX 状态管理指南
+
+## 核心概念
+
+本项目的状态管理基于 MobX，所有 Store 位于 [src/store/](mdc:src/store) 目录。
+
+## Store 创建
+
+### 使用 makeAutoObservable（推荐）
+
+```typescript
+import { makeAutoObservable } from 'mobx';
+
+class CounterStore {
+  count = 0;
+  
+  constructor() {
+    makeAutoObservable(this);
+  }
+  
+  increment() {
+    this.count++;
+  }
+  
+  decrement() {
+    this.count--;
+  }
+  
+  get doubleCount() {
+    return this.count * 2;
+  }
+}
+
+export default new CounterStore();
+```
+
+### 使用 makeObservable
+
+适用于需要精细控制的场景：
+
+```typescript
+import { makeObservable, observable, action, computed } from 'mobx';
+
+class UserStore {
+  users = [];
+  loading = false;
+  
+  constructor() {
+    makeObservable(this, {
+      users: observable,
+      loading: observable,
+      fetchUsers: action,
+      userCount: computed,
+    });
+  }
+  
+  fetchUsers = async () => {
+    this.loading = true;
+    try {
+      const data = await api.getUsers();
+      this.users = data;
+    } finally {
+      this.loading = false;
+    }
+  };
+  
+  get userCount() {
+    return this.users.length;
+  }
+}
+
+export default new UserStore();
+```
+
+## Store 导出
+
+所有 Store 统一在 [src/store/index.ts](mdc:src/store/index.ts) 中导出：
+
+```typescript
+export { default as counterStore } from './counterStore';
+export { default as userStore } from './userStore';
+export { default as localeStore } from './localeStore';
+export { default as themeStore } from './themeStore';
+```
+
+## 组件中使用 Store
+
+### 使用 observer
+
+必须使用 `observer` 包裹组件使其响应式：
+
+```typescript
+import { observer } from 'mobx-react-lite';
+import { counterStore } from '@/store';
+
+const Counter = observer(() => {
+  return (
+    <div>
+      <p>Count: {counterStore.count}</p>
+      <button onClick={() => counterStore.increment()}>+</button>
+      <button onClick={() => counterStore.decrement()}>-</button>
+    </div>
+  );
+});
+```
+
+### 访问 Store
+
+直接导入和使用单例 Store：
+
+```typescript
+import { localeStore } from '@/store';
+
+function Component() {
+  const currentLocale = localeStore.locale;
+  
+  const changeLanguage = (lang: string) => {
+    localeStore.setLocale(lang);
+  };
+  
+  return <div>{currentLocale}</div>;
+}
+```
+
+## Actions
+
+### 定义 Action
+
+```typescript
+class UserStore {
+  users = [];
+  
+  // 同步 Action
+  setUsers = (users: User[]) => {
+    this.users = users;
+  };
+  
+  // 异步 Action
+  fetchUsers = async () => {
+    try {
+      const data = await api.getUsers();
+      this.setUsers(data);
+    } catch (error) {
+      console.error(error);
+    }
+  };
+}
+```
+
+### 使用 Action
+
+```typescript
+// 在组件中调用
+import { userStore } from '@/store';
+
+useEffect(() => {
+  userStore.fetchUsers();
+}, []);
+```
+
+## Computed 计算值
+
+定义计算属性：
+
+```typescript
+class CartStore {
+  items = [];
+  
+  get total() {
+    return this.items.reduce((sum, item) => sum + item.price * item.quantity, 0);
+  }
+  
+  get itemCount() {
+    return this.items.length;
+  }
+}
+```
+
+使用计算值：
+
+```typescript
+const CartSummary = observer(() => {
+  return (
+    <div>
+      <p>商品数量: {cartStore.itemCount}</p>
+      <p>总计: ¥{cartStore.total}</p>
+    </div>
+  );
+});
+```
+
+## 数据持久化
+
+使用 `mobx-persist-store` 持久化数据：
+
+```typescript
+import { makeAutoObservable } from 'mobx';
+import { makePersistable } from 'mobx-persist-store';
+
+class ThemeStore {
+  theme = 'light';
+  
+  constructor() {
+    makeAutoObservable(this);
+    
+    makePersistable(this, {
+      name: 'ThemeStore',
+      properties: ['theme'],
+      storage: window.localStorage,
+    });
+  }
+  
+  setTheme = (theme: string) => {
+    this.theme = theme;
+  };
+}
+
+export default new ThemeStore();
+```
+
+## 最佳实践
+
+### 1. Store 职责单一
+
+每个 Store 只管理一个领域的状态：
+
+```typescript
+// ✅ 推荐
+class UserStore { }
+class CartStore { }
+class ThemeStore { }
+
+// ❌ 避免
+class AppStore { // 包含所有状态 }
+```
+
+### 2. 避免深层嵌套
+
+保持数据结构扁平：
+
+```typescript
+// ✅ 推荐
+class UserStore {
+  userInfo = {};
+  userSettings = {};
+}
+
+// ❌ 避免深层嵌套
+class UserStore {
+  data = {
+    user: {
+      info: {},
+      settings: {},
+    },
+  };
+}
+```
+
+### 3. 合理的 Action 粒度
+
+将复杂操作拆分为多个 Action：
+
+```typescript
+class OrderStore {
+  orders = [];
+  detail = null;
+  loading = false;
+  
+  fetchOrders = async () => {
+    this.loading = true;
+    this.orders = await api.getOrders();
+    this.loading = false;
+  };
+  
+  fetchOrderDetail = async (id: string) => {
+    this.loading = true;
+    this.detail = await api.getOrderDetail(id);
+    this.loading = false;
+  };
+}
+```
+
+### 4. 错误处理
+
+在 Store 中统一处理错误：
+
+```typescript
+class ApiStore {
+  error = null;
+  
+  fetchData = async () => {
+    try {
+      const data = await api.fetchData();
+      return data;
+    } catch (error) {
+      this.error = error;
+      throw error;
+    }
+  };
+  
+  clearError = () => {
+    this.error = null;
+  };
+}
+```
+
+### 5. 类型安全
+
+为 Store 定义接口：
+
+```typescript
+interface UserInfo {
+  id: string;
+  name: string;
+  email: string;
+}
+
+class UserStore {
+  currentUser: UserInfo | null = null;
+  
+  setUser = (user: UserInfo) => {
+    this.currentUser = user;
+  };
+}
+```
+
+## 调试
+
+### 启用 MobX DevTools
+
+```typescript
+import { configure } from 'mobx';
+
+configure({
+  enforceActions: 'always',
+  computedRequiresReaction: true,
+  reactionRequiresObservable: true,
+  observableRequiresReaction: true,
+  disableErrorBoundaries: true,
+});
+```
+
+### 控制台调试
+
+```typescript
+import { trace } from 'mobx';
+
+const UserComponent = observer(() => {
+  trace(); // 追踪依赖
+  return <div>{userStore.name}</div>;
+});
+```
+
+## 常见问题
+
+### 1. 组件不更新
+
+确保使用 `observer` 包裹组件：
+
+```typescript
+// ✅ 正确
+const Component = observer(() => <div>{store.value}</div>);
+
+// ❌ 错误
+const Component = () => <div>{store.value}</div>;
+```
+
+### 2. 异步 Action
+
+异步操作需要正确处理：
+
+```typescript
+class Store {
+  data = null;
+  loading = false;
+  
+  fetchData = async () => {
+    this.loading = true;
+    try {
+      this.data = await api.getData();
+    } finally {
+      this.loading = false;
+    }
+  };
+}
+```
+
+### 3. 数组操作
+
+使用直接的修改而不是替换整个数组：
+
+```typescript
+// ✅ 推荐
+this.items.push(newItem);
+this.items.splice(index, 1);
+
+// ❌ 避免
+this.items = [...this.items, newItem];
+```
+
+## Store 示例
+
+参考现有 Store 实现：
+- [counterStore.ts](mdc:src/store/counterStore.ts)
+- [localeStore.ts](mdc:src/store/localeStore.ts)
+- [themeStore.ts](mdc:src/store/themeStore.ts)

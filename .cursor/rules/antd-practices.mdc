@@ -1,0 +1,362 @@
+---
+description: Ant Design 组件使用最佳实践
+globs: *.tsx,*.ts
+---
+# Ant Design 最佳实践
+
+## 通用原则
+
+1. **按需导入**: 只导入使用的组件，避免全量导入
+2. **版本一致性**: 统一使用 Ant Design v5.x
+3. **组件组合**: 充分利用 Ant Design 的组件组合模式
+4. **主题定制**: 通过 ConfigProvider 统一配置主题
+
+## Layout 布局
+
+使用 Layout 组件搭建页面骨架：
+
+```typescript
+import { Layout } from 'antd';
+
+const { Header, Content, Sider } = Layout;
+
+<Layout>
+  <Header>Header</Header>
+  <Layout>
+    <Sider>Sider</Sider>
+    <Content>Content</Content>
+  </Layout>
+</Layout>
+```
+
+## Form 表单
+
+### 基础用法
+
+```typescript
+import { Form, Input, Button } from 'antd';
+
+const [form] = Form.useForm();
+
+<Form
+  form={form}
+  layout="vertical"
+  initialValues={{ username: '' }}
+  onFinish={(values) => {
+    console.log('提交:', values);
+  }}
+  onFinishFailed={(errorInfo) => {
+    console.log('验证失败:', errorInfo);
+  }}
+>
+  <Form.Item
+    name="username"
+    label="用户名"
+    rules={[
+      { required: true, message: '请输入用户名' },
+      { min: 3, max: 20, message: '长度在 3-20 个字符' },
+    ]}
+  >
+    <Input placeholder="请输入用户名" />
+  </Form.Item>
+
+  <Form.Item>
+    <Button type="primary" htmlType="submit">
+      提交
+    </Button>
+  </Form.Item>
+</Form>
+```
+
+### 动态表单
+
+使用 Form.List 处理动态表单项：
+
+```typescript
+<Form.List name="items">
+  {(fields, { add, remove }) => (
+    <>
+      {fields.map(({ key, name, ...restField }) => (
+        <Space key={key} align="baseline">
+          <Form.Item
+            {...restField}
+            name={[name, 'value']}
+            rules={[{ required: true, message: '缺少值' }]}
+          >
+            <Input placeholder="Value" />
+          </Form.Item>
+          <MinusCircleOutlined onClick={() => remove(name)} />
+        </Space>
+      ))}
+      <Form.Item>
+        <Button type="dashed" onClick={() => add()} block>
+          <PlusOutlined /> 添加
+        </Button>
+      </Form.Item>
+    </>
+  )}
+</Form.List>
+```
+
+### 复杂验证
+
+```typescript
+// 自定义验证
+const validateAge = (_, value) => {
+  if (!value) {
+    return Promise.resolve();
+  }
+  if (value < 18) {
+    return Promise.reject(new Error('年龄不能小于 18'));
+  }
+  return Promise.resolve();
+};
+
+<Form.Item name="age" rules={[{ validator: validateAge }]}>
+  <InputNumber />
+</Form.Item>
+```
+
+## Table 表格
+
+### 基础表格
+
+```typescript
+import { Table } from 'antd';
+
+const columns = [
+  {
+    title: '姓名',
+    dataIndex: 'name',
+    key: 'name',
+  },
+  {
+    title: '年龄',
+    dataIndex: 'age',
+    key: 'age',
+  },
+  {
+    title: '操作',
+    key: 'action',
+    render: (_, record) => (
+      <Space size="middle">
+        <a>编辑</a>
+        <a>删除</a>
+      </Space>
+    ),
+  },
+];
+
+<Table
+  columns={columns}
+  dataSource={data}
+  pagination={{ current: 1, pageSize: 10 }}
+  loading={loading}
+  rowKey="id"
+/>
+```
+
+### 复杂表格操作
+
+```typescript
+import { Table, Tag } from 'antd';
+import dayjs from 'dayjs';
+
+const columns = [
+  {
+    title: '状态',
+    dataIndex: 'status',
+    render: (status) => (
+      <Tag color={status === 'active' ? 'green' : 'red'}>
+        {status}
+      </Tag>
+    ),
+  },
+  {
+    title: '日期',
+    dataIndex: 'date',
+    sorter: (a, b) => dayjs(a.date).valueOf() - dayjs(b.date).valueOf(),
+    render: (date) => dayjs(date).format('YYYY-MM-DD'),
+  },
+];
+```
+
+## Modal 对话框
+
+### 基本用法
+
+```typescript
+import { Modal } from 'antd';
+
+const [isModalOpen, setIsModalOpen] = useState(false);
+
+const showModal = () => {
+  setIsModalOpen(true);
+};
+
+const handleOk = () => {
+  // 处理确认逻辑
+  setIsModalOpen(false);
+};
+
+const handleCancel = () => {
+  setIsModalOpen(false);
+};
+
+<Modal
+  title="标题"
+  open={isModalOpen}
+  onOk={handleOk}
+  onCancel={handleCancel}
+  width={600}
+>
+  <p>对话框内容</p>
+</Modal>
+```
+
+## Message 消息提示
+
+```typescript
+import { message } from 'antd';
+
+// 成功提示
+message.success('操作成功');
+
+// 错误提示
+message.error('操作失败，请重试');
+
+// 警告提示
+message.warning('请注意');
+
+// 加载提示
+const hide = message.loading('处理中..', 0);
+// 完成后
+hide();
+```
+
+## Notification 通知
+
+```typescript
+import { notification } from 'antd';
+
+notification.open({
+  message: '通知标题',
+  description: '通知内容描述',
+  icon: <Icon />,
+  duration: 3,
+  placement: 'topRight',
+});
+```
+
+## Space 间距
+
+使用 Space 组件管理间距：
+
+```typescript
+import { Space, Button } from 'antd';
+
+<Space direction="vertical" size="middle">
+  <Button>按钮 1</Button>
+  <Button>按钮 2</Button>
+</Space>
+
+<Space wrap>
+  <Button>按钮 1</Button>
+  <Button>按钮 2</Button>
+</Space>
+```
+
+## Card 卡片
+
+```typescript
+import { Card } from 'antd';
+
+<Card
+  title="卡片标题"
+  extra={<a href="#">更多</a>}
+  bordered={false}
+  style={{ width: 300 }}
+>
+  <p>卡片内容</p>
+</Card>
+```
+
+## 自定义主题
+
+使用 ConfigProvider 统一配置：
+
+```typescript
+import { ConfigProvider, theme } from 'antd';
+
+<ConfigProvider
+  theme={{
+    token: {
+      colorPrimary: '#00b96b',
+      borderRadius: 2,
+    },
+    algorithm: theme.darkAlgorithm, // 暗色主题
+  }}
+>
+  <App />
+</ConfigProvider>
+```
+
+## 国际化
+
+结合 react-i18next 使用：
+
+```typescript
+import { useTranslation } from 'react-i18next';
+import { Button } from 'antd';
+
+const Component =() => {
+  const { t } = useTranslation();
+  
+  return <Button>{t('common.submit')}</Button>;
+}
+export default Component;
+```
+
+## 性能优化
+
+1. **大数据表格**: 使用 `virtual` 属性虚拟滚动
+2. **表单优化**: 使用 `preserve={false}` 卸载时清除字段
+3. **图片上传**: 使用 `beforeUpload` 进行预处理
+
+## 响应式设计
+
+```typescript
+import { Grid } from 'antd';
+
+const { useBreakpoint } = Grid;
+
+const Component =() => {
+  const screens = useBreakpoint();
+  const isMobile = !screens.md;
+  
+  return <div>响应式内容</div>;
+}
+export default Component;
+```
+
+## 常见问题
+
+1. **日期组件**: 使用 dayjs 而非 moment
+   ```typescript
+   import dayjs from 'dayjs';
+   
+   // 在组件中使用
+   const date = dayjs('2024-01-01');
+   console.log(date.format('YYYY-MM-DD'));
+   
+   // 与 DatePicker 配合
+   <DatePicker 
+     defaultValue={dayjs()} 
+     format="YYYY-MM-DD" 
+   />
+   
+   // 详见 dayjs-practices.mdc 规则
+   ```
+
+2. **样式覆盖**: 使用 CSS Modules 或 className 覆盖
+3. **按需导入**: 确保 babel-plugin-import 配置正确

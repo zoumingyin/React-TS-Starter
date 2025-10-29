@@ -1,0 +1,33 @@
+{
+  "nav": {
+    "home": "Home",
+    "about": "About"
+  },
+  "home": {
+    "welcome": "Welcome to my application",
+    "title": "Home",
+    "desc": "Loading"
+  },
+  "about": {
+    "title": "About",
+    "content": "This is the about page"
+  },
+  "footer": {
+    "copyright": "© 2025 My App"
+  },
+  "language": {
+    "en": "English",
+    "zh": "Chinese"
+  },
+  "common": {
+    "start": "Start",
+    "stop": "Stop",
+    "confirm": "Confirm",
+    "cancel": "Cancel",
+    "save": "Save",
+    "delete": "Delete",
+    "edit": "Edit",
+    "search": "Search",
+    "reset": "Reset"
+  }
+}

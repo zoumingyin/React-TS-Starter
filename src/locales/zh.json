@@ -1,0 +1,33 @@
+{
+  "nav": {
+    "home": "首页",
+    "about": "关于"
+  },
+  "home": {
+    "welcome": "欢迎来到我的应用",
+    "title": "首页",
+    "desc": "加载"
+  },
+  "about": {
+    "title": "关于",
+    "content": "这是关于页面"
+  },
+  "footer": {
+    "copyright": "© 2025 我的应用"
+  },
+  "language": {
+    "zh": "中文",
+    "en": "英文"
+  },
+  "common": {
+    "start": "启动",
+    "stop": "停止",
+    "confirm": "确认",
+    "cancel": "取消",
+    "save": "保存",
+    "delete": "删除",
+    "edit": "编辑",
+    "search": "搜索",
+    "reset": "重置"
+  }
+}

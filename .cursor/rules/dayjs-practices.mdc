@@ -1,0 +1,537 @@
+---
+description: dayjs 日期处理库使用指南
+globs: *.ts,*.tsx
+---
+# dayjs 日期处理指南
+
+## 概述
+
+本项目使用 **dayjs** 作为日期时间处理库，替代 moment.js。
+
+- **轻量**: 仅 2KB（gzipped）
+- **API 友好**: 与 moment.js API 兼容
+- **插件化**: 按需加载功能模块
+- **TypeScript**: 原生支持类型推断
+
+## 基础导入
+
+### 基本使用
+
+```typescript
+import dayjs from 'dayjs';
+
+const now = dayjs();
+const date = dayjs('2024-01-01');
+const timestamp = dayjs(1704067200000);
+```
+
+### 按需加载插件
+
+```typescript
+// 常用插件
+import duration from 'dayjs/plugin/duration';
+import relativeTime from 'dayjs/plugin/relativeTime';
+import isSameOrBefore from 'dayjs/plugin/isSameOrBefore';
+import isSameOrAfter from 'dayjs/plugin/isSameOrAfter';
+import customParseFormat from 'dayjs/plugin/customParseFormat';
+import weekday from 'dayjs/plugin/weekday';
+import localeData from 'dayjs/plugin/localeData';
+
+// 扩展 dayjs
+dayjs.extend(duration);
+dayjs.extend(relativeTime);
+dayjs.extend(isSameOrBefore);
+dayjs.extend(isSameOrAfter);
+dayjs.extend(customParseFormat);
+dayjs.extend(weekday);
+dayjs.extend(localeData);
+```
+
+## 日期创建与解析
+
+### 当前时间
+
+```typescript
+const now = dayjs();
+const today = dayjs(new Date());
+```
+
+### 字符串解析
+
+```typescript
+dayjs('2024-01-01');
+dayjs('2024-01-01 10:00:00');
+dayjs('January 1, 2024');
+
+// 自定义格式
+dayjs('2024-01-01', 'YYYY-MM-DD');
+```
+
+### 时间戳
+
+```typescript
+dayjs(1704067200000); // Unix 时间戳（毫秒）
+dayjs.unix(1704067200); // Unix 时间戳（秒）
+```
+
+### 克隆
+
+```typescript
+const original = dayjs();
+const clone = original.clone();
+```
+
+## 日期格式化
+
+### format 方法
+
+```typescript
+const date = dayjs('2024-01-15');
+
+date.format(); // '2024-01-15T00:00:00+08:00'
+date.format('YYYY-MM-DD'); // '2024-01-15'
+date.format('YYYY-MM-DD HH:mm:ss'); // '2024-01-15 00:00:00'
+date.format('dddd'); // 星期几
+date.format('MMMM DD, YYYY'); // 'January 15, 2024'
+```
+
+### 格式化标记
+
+```typescript
+// YYYY - 4位年份
+// MM - 2位月份（01-12）
+// MMM - 短月份名（Jan）
+// MMMM - 完整月份名（January）
+// DD - 2位日期（01-31）
+// ddd - 短星期名（Mon）
+// dddd - 完整星期名（Monday）
+// HH - 24小时制（00-23）
+// hh - 12小时制（01-12）
+// mm - 分钟（00-59）
+// ss - 秒（00-59）
+// A - AM/PM
+// a - am/pm
+```
+
+## 日期操作
+
+### 获取/设置
+
+```typescript
+const date = dayjs('2024-01-15');
+
+// 获取
+date.year(); // 2024
+date.month(); // 0 (0-11)
+date.date(); // 15
+date.day(); // 1 (周日=0)
+date.hour(); // 0
+date.minute(); // 0
+date.second(); // 0
+
+// 设置
+date.year(2025);
+date.month(11); // 12月
+date.date(31);
+date.hour(23);
+date.minute(59);
+date.second(59);
+```
+
+### 加减运算
+
+```typescript
+const date = dayjs('2024-01-15');
+
+// 加法
+date.add(1, 'day');
+date.add(1, 'month');
+date.add(1, 'year');
+date.add(1, 'hour');
+date.add(30, 'minute');
+
+// 减法
+date.subtract(1, 'day');
+date.subtract(1, 'month');
+date.subtract(1, 'year');
+
+// 支持的单位: year, month, week, day, hour, minute, second
+```
+
+### startOf / endOf
+
+```typescript
+const date = dayjs('2024-01-15 14:30:00');
+
+date.startOf('year');   // 2024-01-01 00:00:00
+date.startOf('month');  // 2024-01-01 00:00:00
+date.startOf('day');    // 2024-01-15 00:00:00
+date.startOf('hour');   // 2024-01-15 14:00:00
+date.startOf('minute'); // 2024-01-15 14:30:00
+
+date.endOf('year');     // 2024-12-31 23:59:59
+date.endOf('month');    // 2024-01-31 23:59:59
+date.endOf('day');      // 2024-01-15 23:59:59
+```
+
+## 日期查询
+
+### 比较操作
+
+```typescript
+dayjs().isBefore(dayjs('2024-01-01')); // false
+dayjs().isAfter(dayjs('2024-01-01')); // true
+dayjs().isSame(dayjs()); // true
+dayjs('2024-01-01').isSame(dayjs('2024-01-01'), 'year'); // true
+dayjs('2024-01-01').isSame(dayjs('2024-01-02'), 'month'); // true
+
+// 使用插件
+dayjs('2024-01-01').isSameOrBefore(dayjs('2024-01-02')); // true
+dayjs('2024-01-02').isSameOrAfter(dayjs('2024-01-01')); // true
+```
+
+### 判断
+
+```typescript
+dayjs().isValid(); // 是否是有效日期
+dayjs().isDST(); // 是否夏令时
+dayjs().isLeapYear(); // 是否闰年
+```
+
+## 相对时间
+
+```typescript
+import relativeTime from 'dayjs/plugin/relativeTime';
+import 'dayjs/locale/zh-cn'; // 中文
+
+dayjs.extend(relativeTime);
+dayjs.locale('zh-cn');
+
+dayjs().from(dayjs('2024-01-01')); // 'X 天前'
+dayjs().fromNow(); // '几秒前'
+dayjs().to(dayjs('2025-01-01')); // 'X 天后'
+dayjs().toNow(); // '几秒后'
+```
+
+## 国际化
+
+### 设置语言
+
+```typescript
+import 'dayjs/locale/zh-cn';
+import 'dayjs/locale/en';
+
+dayjs.locale('zh-cn');
+dayjs().format('dddd'); // 星期一
+
+dayjs.locale('en');
+dayjs().format('dddd'); // Monday
+```
+
+## 与 Antd 集成
+
+### DatePicker
+
+```typescript
+import { DatePicker } from 'antd';
+import dayjs from 'dayjs';
+import customParseFormat from 'dayjs/plugin/customParseFormat';
+
+dayjs.extend(customParseFormat);
+
+const dateFormat = 'YYYY-MM-DD';
+
+<DatePicker
+  defaultValue={dayjs('2024-01-01', dateFormat)}
+  format={dateFormat}
+  onChange={(date) => {
+    if (date) {
+      console.log(date.format(dateFormat));
+    }
+  }}
+/>
+```
+
+### TimePicker
+
+```typescript
+import { TimePicker } from 'antd';
+import dayjs from 'dayjs';
+
+const timeFormat = 'HH:mm';
+
+<TimePicker
+  defaultValue={dayjs('10:00', timeFormat)}
+  format={timeFormat}
+/>
+```
+
+### RangePicker
+
+```typescript
+import { DatePicker } from 'antd';
+import dayjs from 'dayjs';
+
+const { RangePicker } = DatePicker;
+
+const rangePicker: [dayjs.Dayjs, dayjs.Dayjs] = [
+  dayjs().startOf('month'),
+  dayjs().endOf('month'),
+];
+
+<RangePicker
+  defaultValue={rangePicker}
+  onChange={(dates) => {
+    if (dates) {
+      console.log(dates[0].format('YYYY-MM-DD'));
+      console.log(dates[1].format('YYYY-MM-DD'));
+    }
+  }}
+/>
+```
+
+### 禁用日期
+
+```typescript
+import { DatePicker } from 'antd';
+import dayjs from 'dayjs';
+
+const disabledDate = (current: dayjs.Dayjs) => {
+  // 今天及今天之前的日期禁用
+  return current && current < dayjs().startOf('day');
+};
+
+<DatePicker disabledDate={disabledDate} />
+```
+
+## 常用工具函数
+
+### 创建日期工具类
+
+```typescript
+// src/utils/dateUtil.ts
+import dayjs, { Dayjs } from 'dayjs';
+
+export const dateUtil = {
+  // 格式化日期
+  format: (date: Dayjs | string | null | undefined, format = 'YYYY-MM-DD'): string => {
+    if (!date) return '';
+    return dayjs(date).format(format);
+  },
+
+  // 获取今天
+  today: () => dayjs().startOf('day'),
+
+  // 获取本周开始和结束
+  thisWeek: () => ({
+    start: dayjs().startOf('week'),
+    end: dayjs().endOf('week'),
+  }),
+
+  // 获取本月开始和结束
+  thisMonth: () => ({
+    start: dayjs().startOf('month'),
+    end: dayjs().endOf('month'),
+  }),
+
+  // 获取今年开始和结束
+  thisYear: () => ({
+    start: dayjs().startOf('year'),
+    end: dayjs().endOf('year'),
+  }),
+
+  // 获取距今 N 天的日期
+  getDateRange: (days: number) => ({
+    start: dayjs().subtract(days, 'day').startOf('day'),
+    end: dayjs().endOf('day'),
+  }),
+
+  // 判断是否同一天
+  isSameDay: (date1: Dayjs | string, date2: Dayjs | string): boolean => {
+    return dayjs(date1).isSame(dayjs(date2), 'day');
+  },
+
+  // 计算日期差
+  diff: (date1: Dayjs | string, date2: Dayjs | string, unit: 'day' | 'month' | 'year' = 'day'): number => {
+    return dayjs(date1).diff(dayjs(date2), unit);
+  },
+};
+```
+
+### 使用示例
+
+```typescript
+import { dateUtil } from '@/utils/dateUtil';
+
+// 格式化日期
+const formatted = dateUtil.format('2024-01-15', 'YYYY年MM月DD日');
+
+// 日期范围
+const thisWeek = dateUtil.thisWeek();
+console.log(dateUtil.format(thisWeek.start));
+console.log(dateUtil.format(thisWeek.end));
+
+// 最近 7 天
+const lastWeek = dateUtil.getDateRange(7);
+```
+
+## 表格中的日期格式
+
+### 格式化日期列
+
+```typescript
+import { Table } from 'antd';
+import dayjs from 'dayjs';
+
+const columns = [
+  {
+    title: '创建时间',
+    dataIndex: 'createTime',
+    key: 'createTime',
+    render: (date: string) => dayjs(date).format('YYYY-MM-DD HH:mm:ss'),
+  },
+  {
+    title: '更新时间',
+    dataIndex: 'updateTime',
+    key: 'updateTime',
+    render: (date: string) => dayjs(date).format('MM-DD HH:mm'),
+  },
+];
+```
+
+## 表单中的日期处理
+
+### 初始值设置
+
+```typescript
+import { Form, DatePicker } from 'antd';
+import dayjs from 'dayjs';
+
+<Form
+  initialValues={{
+    startDate: dayjs(),
+    endDate: dayjs().add(7, 'day'),
+  }}
+>
+  <Form.Item name="startDate">
+    <DatePicker />
+  </Form.Item>
+  <Form.Item name="endDate">
+    <DatePicker />
+  </Form.Item>
+</Form>
+```
+
+### 提交处理
+
+```typescript
+const onFinish = (values: any) => {
+  const formData = {
+    ...values,
+    startDate: values.startDate.format('YYYY-MM-DD'),
+    endDate: values.endDate.format('YYYY-MM-DD'),
+  };
+  // 提交到后端
+};
+```
+
+## 数据导入优化
+
+### 在 main.tsx 中集中配置
+
+```typescript
+// src/main.tsx
+import dayjs from 'dayjs';
+import customParseFormat from 'dayjs/plugin/customParseFormat';
+import relativeTime from 'dayjs/plugin/relativeTime';
+import 'dayjs/locale/zh-cn';
+
+dayjs.extend(customParseFormat);
+dayjs.extend(relativeTime);
+dayjs.locale('zh-cn');
+```
+
+## 最佳实践
+
+### 1. 统一使用工具函数
+
+```typescript
+// ✅ 推荐
+import { dateUtil } from '@/utils/dateUtil';
+const formatted = dateUtil.format(date);
+
+// ❌ 避免
+const formatted = dayjs(date).format('YYYY-MM-DD');
+```
+
+### 2. 处理空值
+
+```typescript
+// ✅ 推荐
+const formatDate = (date?: string) => {
+  if (!date) return '';
+  return dayjs(date).format('YYYY-MM-DD');
+};
+
+// ❌ 避免
+dayjs(date).format('YYYY-MM-DD'); // 可能报错
+```
+
+### 3. 时区处理
+
+```typescript
+import timezone from 'dayjs/plugin/timezone';
+import utc from 'dayjs/plugin/utc';
+
+dayjs.extend(utc);
+dayjs.extend(timezone);
+
+dayjs.tz('2024-01-01', 'Asia/Shanghai');
+```
+
+### 4. 性能优化
+
+对于频繁调用的格式化，考虑缓存：
+
+```typescript
+const formatCache = new Map();
+
+const formatDate = (date: string, format: string) => {
+  const key = `${date}_${format}`;
+  if (!formatCache.has(key)) {
+    formatCache.set(key, dayjs(date).format(format));
+  }
+  return formatCache.get(key);
+};
+```
+
+## 常见问题
+
+### 1. 时间戳转换
+
+```typescript
+// Unix 时间戳 (秒) -> dayjs
+dayjs.unix(1704067200);
+
+// 时间戳 (毫秒) -> dayjs
+dayjs(1704067200000);
+```
+
+### 2. 获取时间戳
+
+```typescript
+dayjs().valueOf(); // 毫秒
+dayjs().unix(); // 秒
+```
+
+### 3. Duration 时间段
+
+```typescript
+import duration from 'dayjs/plugin/duration';
+
+dayjs.extend(duration);
+
+const d = dayjs.duration({ months: 1, weeks: 2, days: 5 });
+d.asDays(); // 返回总天数
+d.humanize(); // '1个月 2 星期 5 天'
+```

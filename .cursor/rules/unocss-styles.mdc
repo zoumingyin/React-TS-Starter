@@ -1,0 +1,447 @@
+---
+description: UnoCSS 样式开发指南
+globs: *.tsx,*.ts,*.scss,*.css
+---
+# UnoCSS 样式开发指南
+
+## 概述
+
+本项目使用 **UnoCSS** + **SCSS** 作为样式方案。
+
+- **UnoCSS**: 原子化 CSS 框架，用于快速构建 UI
+- **SCSS**: 用于复杂样式和组件样式
+
+## UnoCSS 配置
+
+配置文件: [uno.config.ts](mdc:uno.config.ts)
+
+已启用的预设：
+- `presetUno`: 基础预设
+- `presetAttributify`: 属性化模式
+- `presetIcons`: 图标预设
+
+## 基本使用
+
+### 原子类
+
+使用原子类快速构建样式：
+
+```tsx
+// 布局
+<div className="flex items-center justify-between">
+  <div className="flex-1">内容</div>
+  <div className="ml-4">侧边栏</div>
+</div>
+
+// 尺寸
+<div className="w-full h-screen px-4 py-2">
+
+// 颜色
+<div className="bg-blue-500 text-white hover:bg-blue-600">
+
+// 间距
+<div className="p-4 m-2 space-y-4">
+  <div className="mb-2">元素1</div>
+  <div className="mb-2">元素2</div>
+</div>
+```
+
+### 响应式设计
+
+```tsx
+<div className="w-full md:w-1/2 lg:w-1/3">
+  {/* 移动端全宽，平板一半，桌面三分之一 */}
+</div>
+
+<div className="hidden md:block">
+  {/* 仅在大屏幕显示 */}
+</div>
+```
+
+### 属性化模式 (Attributify)
+
+使用属性化语法：
+
+```tsx
+<div
+  flex="~" 
+  items="center" 
+  justify="between"
+  w="full"
+  h="screen"
+>
+  内容
+</div>
+```
+
+## 常用类名速查
+
+### 布局 (Layout)
+
+```tsx
+// Flexbox
+className="flex flex-row flex-col"
+className="items-center items-start items-end"
+className="justify-center justify-between justify-around"
+className="flex-wrap flex-nowrap"
+
+// Grid
+className="grid grid-cols-3 grid-rows-2"
+className="gap-4 gap-x-2 gap-y-4"
+
+// Position
+className="relative absolute fixed sticky"
+className="top-0 right-0 bottom-0 left-0"
+```
+
+### 尺寸 (Sizing)
+
+```tsx
+// 宽度
+className="w-full w-screen w-fit w-auto"
+className="w-1/2 w-1/3 w-1/4"
+
+// 高度
+className="h-full h-screen h-auto"
+
+// 最大/最小
+className="max-w-md min-w-xs"
+```
+
+### 间距 (Spacing)
+
+```tsx
+// Padding
+className="p-4 px-4 py-2 pt-4 pb-4 pl-4 pr-4"
+
+// Margin
+className="m-4 mx-4 my-2 mt-4 mb-4 ml-4 mr-4"
+
+// Gap (用于 Grid/Flex)
+className="gap-4 gap-x-2 gap-y-4"
+
+// Space (子元素间距)
+className="space-y-4 space-x-2"
+```
+
+### 文本 (Typography)
+
+```tsx
+// 字体大小
+className="text-sm text-base text-lg text-xl"
+
+// 字重
+className="font-light font-normal font-bold"
+
+// 对齐
+className="text-left text-center text-right"
+
+// 行高
+className="leading-tight leading-normal leading-relaxed"
+
+// 文本溢出
+className="truncate overflow-ellipsis overflow-hidden"
+```
+
+### 颜色 (Colors)
+
+```tsx
+// 背景色
+className="bg-white bg-gray-100 bg-blue-500 bg-red-600"
+
+// 文本色
+className="text-gray-900 text-blue-500 text-red-600"
+
+// 边框色
+className="border-gray-300 border-blue-500"
+
+// 透明度
+className="bg-opacity-50 text-opacity-75"
+```
+
+### 边框 (Borders)
+
+```tsx
+// 边框
+className="border border-2 border-4"
+className="border-solid border-dashed border-dotted"
+className="rounded rounded-md rounded-lg rounded-full"
+className="border-gray-300"
+```
+
+### 阴影 (Shadows)
+
+```tsx
+className="shadow-sm shadow-md shadow-lg shadow-xl"
+className="shadow-blue-500 shadow-inner"
+```
+
+### 交互 (Interactions)
+
+```tsx
+// Hover
+className="hover:bg-blue-500 hover:text-white"
+
+// Focus
+className="focus:outline-none focus:ring-2"
+
+// Active
+className="active:scale-95"
+
+// Disabled
+className="disabled:opacity-50 disabled:cursor-not-allowed"
+
+// Transition
+className="transition-all duration-300 ease-in-out"
+```
+
+## 图标使用
+
+### 使用 Icon
+
+```tsx
+import { Icon } from '@unocss/preset-icons/react';
+
+<Icon name="i-mdi-home" />
+<Icon name="i-carbon-settings" />
+<Icon name="i-ph:user" />
+
+// 带样式
+<Icon name="i-mdi-home" className="text-2xl text-blue-500" />
+```
+
+### 与 Antd Icons 搭配
+
+```tsx
+import { SettingOutlined, UserOutlined } from '@ant-design/icons';
+
+<div className="p-4 bg-blue-500 rounded">
+  <SettingOutlined className="text-white text-xl" />
+</div>
+```
+
+## 复杂样式使用 SCSS
+
+### 组件样式文件
+
+为组件创建对应的 SCSS 文件：
+
+```scss
+// src/components/Card/Card.scss
+.card {
+  @apply rounded-lg shadow-md p-4;
+  
+  &-header {
+    @apply flex items-center justify-between mb-4;
+  }
+  
+  &-title {
+    @apply text-lg font-bold text-gray-900;
+  }
+  
+  &-body {
+    @apply text-gray-600;
+  }
+  
+  &:hover {
+    @apply shadow-lg transition-shadow;
+  }
+}
+```
+
+在组件中使用：
+
+```tsx
+import './Card.scss';
+
+<div className="card">
+  <div className="card-header">
+    <h3 className="card-title">标题</h3>
+  </div>
+  <div className="card-body">内容</div>
+</div>
+```
+
+### 全局样式
+
+在 [src/styles/global.scss](mdc:src/styles/global.scss) 中定义全局样式：
+
+```scss
+// 全局变量
+$primary-color: #1890ff;
+$border-radius: 4px;
+
+// 全局类
+.container {
+  @apply mx-auto px-4 max-w-7xl;
+}
+
+// 响应式断点
+@media (min-width: 768px) {
+  .container {
+    @apply px-6;
+  }
+}
+```
+
+## 样式组织建议
+
+### 1. 原子类优先
+
+优先使用 UnoCSS 原子类，复杂样式才使用 SCSS：
+
+```tsx
+// ✅ 推荐
+<div className="flex items-center justify-between p-4 bg-white rounded shadow">
+
+// ❌ 避免过度嵌套
+<div className="card-container">
+  <div className="card-inner">
+    <div className="card-content">
+```
+
+### 2. 组件样式隔离
+
+组件样式使用 SCSS 文件隔离：
+
+```
+components/
+  Card/
+    index.tsx
+    Card.scss
+```
+
+### 3. 复用样式模式
+
+使用组合类或 BEM 命名：
+
+```tsx
+// 使用组合
+const cardClasses = "p-4 bg-white rounded shadow";
+
+<div className={cardClasses}>卡片1</div>
+<div className={cardClasses}>卡片2</div>
+```
+
+### 4. 响应式设计
+
+```tsx
+<div className="
+  grid grid-cols-1 
+  md:grid-cols-2 
+  lg:grid-cols-3 
+  gap-4
+">
+```
+
+## 主题与暗色模式
+
+### 使用自定义颜色
+
+在 [uno.config.ts](mdc:uno.config.ts) 中定义主题色：
+
+```typescript
+theme: {
+  colors: {
+    primary: '#1890ff',
+    secondary: '#52c41a',
+  },
+}
+```
+
+使用主题色：
+
+```tsx
+<div className="bg-primary text-white">
+  使用主题色
+</div>
+```
+
+### 暗色模式
+
+结合 Theme Context 实现暗色模式：
+
+```tsx
+import { ThemeContext } from '@/theme/ThemeContext';
+
+const { theme } = useContext(ThemeContext);
+
+<div className={theme === 'dark' ? 'bg-gray-800 text-white' : 'bg-white text-gray-900'}>
+  内容
+</div>
+```
+
+## 性能优化
+
+### 1. 避免过度使用原子类
+
+```tsx
+// ✅ 推荐 - 组合成类
+.flex-center {
+  @apply flex items-center justify-center;
+}
+
+// ❌ 避免 - 每处都写
+<div className="flex items-center justify-center">
+```
+
+### 2. 使用 CSS 变量
+
+```css
+:root {
+  --primary-color: #1890ff;
+}
+
+.component {
+  color: var(--primary-color);
+}
+```
+
+### 3. 合理使用 purge
+
+UnoCSS 会自动 purge 未使用的类，保持构建体积小。
+
+## 与 Ant Design 搭配
+
+### 覆盖 Antd 样式
+
+```scss
+// 覆盖 Ant Design 组件样式
+.ant-btn {
+  @apply rounded-lg;
+  
+  &.ant-btn-primary {
+    @apply bg-blue-500 hover:bg-blue-600;
+  }
+}
+```
+
+### 响应式与 Antd 组件
+
+```tsx
+import { Grid } from 'antd';
+
+const { useBreakpoint } = Grid;
+
+function ResponsiveCard() {
+  const screens = useBreakpoint();
+  
+  return (
+    <Card className={`
+      ${screens.md ? 'shadow-lg' : 'shadow-sm'}
+      ${screens.lg ? 'p-6' : 'p-4'}
+    `}>
+      {content}
+    </Card>
+  );
+}
+```
+
+## 最佳实践总结
+
+1. **原子类优先**: 简单样式使用原子类
+2. **SCSS 处理复杂逻辑**: 复杂样式和动画使用 SCSS
+3. **保持一致性**: 统一使用设计系统中的颜色和间距
+4. **响应式设计**: 优先移动端，渐进增强
+5. **性能考虑**: 避免过度嵌套和深度选择器
+6. **可维护性**: 使用语义化的类名组合
